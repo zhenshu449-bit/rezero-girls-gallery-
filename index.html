@@ -1,5 +1,5 @@
 from pathlib import Path
-p=Path("/mnt/data/index.html")
+p=Path("/mnt/data/index_stable.html")
 p.write_text(r'''<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -11,9 +11,8 @@ p.write_text(r'''<!doctype html>
 header{position:sticky;top:0;z-index:5;background:#171a20ee;backdrop-filter:blur(10px);padding:14px}
 h1{font-size:22px;margin:0 0 12px}.bar{display:flex;gap:7px;overflow:auto;margin-bottom:6px}
 button,input{border:0;border-radius:10px;padding:10px 12px;background:#252a33;color:#fff}
-button{cursor:pointer;white-space:nowrap}button.on{background:#8b6cff}
-input{width:100%;margin:8px 0}
-#grid{display:grid;grid-template-columns:1fr;gap:12px;padding:12px}
+button{cursor:pointer;white-space:nowrap}button.on{background:#8b6cff}button:disabled{opacity:.55}
+input{width:100%;margin:8px 0}#grid{display:grid;grid-template-columns:1fr;gap:12px;padding:12px}
 .card{background:#191d24;border-radius:12px;overflow:hidden}.card img{width:100%;display:block;background:#0b0d10}
 .actions{display:flex;gap:6px;padding:8px}.actions button{flex:1;font-size:13px}
 #more{display:block;margin:8px auto 20px}#status{text-align:center;padding:10px;color:#aaa;font-size:13px}
@@ -24,38 +23,62 @@ input{width:100%;margin:8px 0}
 </style>
 </head>
 <body>
-<header>
-<h1>🌸 Re:Zero Girls Gallery</h1>
+<header><h1>🌸 Re:Zero Girls Gallery</h1>
 <div class="bar" id="rating"></div><div class="bar" id="chars"></div><div class="bar" id="cats"></div>
 <input id="search" placeholder="输入标签，例如 swimsuit">
 </header>
-<div id="status">正在加载…</div><main id="grid"></main><button id="more">加载更多</button>
+<div id="status">准备加载…</div><main id="grid"></main><button id="more">加载更多</button>
 <div id="viewer"><button id="close">✕</button><img id="vimg"></div>
 <script>
-const API="https://danbooru.donmai.us/posts.json";
-const BASE="re:zero";
+const API="https://danbooru.donmai.us/posts.json",BASE="re:zero";
 const girls={"全部":"","艾米莉亚":"emilia_(re:zero)","蕾姆":"rem_(re:zero)","拉姆":"ram_(re:zero)","艾姬多娜":"echidna_(re:zero)","贝蒂":"beatrice_(re:zero)","菲鲁特":"felt_(re:zero)","库珥修":"crusch_karsten","阿纳斯塔西娅":"anastasia_hoshin","普莉希拉":"priscilla_barielle","弗雷德莉卡":"frederica_baumann"};
 const cats={"全部":"","单人":"solo","多人":"multiple_girls","泳装":"swimsuit","女仆":"maid","和服":"kimono","校服":"school_uniform","Cosplay":"cosplay"};
-let rating="",char="",cat="",page=1,loading=false,seen=new Set();
+let rating="",char="",cat="",page=1,loading=false,seen=new Set(),controller=null,requestNo=0;
+const $=id=>document.getElementById(id),grid=$("grid"),status=$("status"),more=$("more"),search=$("search");
 function buttons(obj,box,fn){for(const[n,v]of Object.entries(obj)){let b=document.createElement("button");b.textContent=n;if(!v)b.className="on";b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");fn(v)};box.appendChild(b)}}
-buttons({"全部":"","SFW":"rating:s","NSFW":"rating:q rating:e"},document.querySelector("#rating"),v=>{rating=v;reset()});
-buttons(girls,document.querySelector("#chars"),v=>{char=v;reset()});
-buttons(cats,document.querySelector("#cats"),v=>{cat=v;reset()});
-search.oninput=()=>{clearTimeout(window.t);window.t=setTimeout(reset,400)};
-function reset(){page=1;seen.clear();grid.innerHTML="";load()}
-async function load(){if(loading)return;loading=true;status.textContent="正在加载…";
-let tags=[BASE,char,rating,cat,search.value.trim()].filter(Boolean).join(" ");
-try{let r=await fetch(`${API}?limit=100&page=${page}&tags=${encodeURIComponent(tags)}`);let data=await r.json();
-let added=0;for(let p of data){if(!p.file_url||seen.has(p.id))continue;seen.add(p.id);added++;
-let c=document.createElement("article");c.className="card";c.innerHTML=`<img loading="lazy" src="${p.large_file_url||p.file_url}"><div class="actions"><button class="view">查看</button><button class="fav">❤️ 收藏</button><button class="src">原帖</button></div>`;
-c.querySelector(".view").onclick=()=>open(p.large_file_url||p.file_url);c.querySelector(".src").onclick=()=>location.href="https://danbooru.donmai.us/posts/"+p.id;
-c.querySelector(".fav").onclick=e=>{let a=JSON.parse(localStorage.favs||"[]"),id=String(p.id),i=a.indexOf(id);i<0?a.push(id):a.splice(i,1);localStorage.favs=JSON.stringify(a);e.target.textContent=i<0?"❤️ 已收藏":"❤️ 收藏"};grid.appendChild(c)}
-status.textContent=`本页新增 ${added} 张`;page++}catch(e){status.textContent="加载失败，请重试"}loading=false}
+buttons({"全部":"","SFW":"rating:s","NSFW":"rating:q"},$("rating"),v=>{rating=v;reset()});
+buttons(girls,$("chars"),v=>{char=v;reset()});buttons(cats,$("cats"),v=>{cat=v;reset()});
+search.oninput=()=>{clearTimeout(window.searchTimer);window.searchTimer=setTimeout(reset,500)};
+function reset(){if(controller)controller.abort();requestNo++;page=1;seen.clear();grid.innerHTML="";more.disabled=false;load()}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function fetchWithTimeout(url,signal){
+ for(let attempt=1;attempt<=2;attempt++){
+  try{let c=new AbortController(),timer=setTimeout(()=>c.abort(),12000);
+   signal.addEventListener("abort",()=>c.abort(),{once:true});
+   let r=await fetch(url,{signal:c.signal});clearTimeout(timer);
+   if(!r.ok)throw Error("HTTP "+r.status);return await r.json()
+  }catch(e){if(signal.aborted)throw e;if(attempt===2)throw e;status.textContent="连接较慢，正在重试…";await sleep(700)}
+ }
+}
+async function load(){
+ if(loading)return;loading=true;const my=++requestNo;controller=new AbortController();
+ more.disabled=true;status.textContent=page===1?"正在加载…":"正在加载更多…";
+ const tags=[BASE,char,rating,cat,search.value.trim()].filter(Boolean).join(" ");
+ try{
+  const data=await fetchWithTimeout(`${API}?limit=60&page=${page}&tags=${encodeURIComponent(tags)}`,controller.signal);
+  if(my!==requestNo)return;
+  let added=0;for(const p of data){if(!p.file_url||seen.has(p.id))continue;seen.add(p.id);added++;
+   const c=document.createElement("article");c.className="card";
+   c.innerHTML=`<img loading="lazy" src="${p.large_file_url||p.file_url}" alt=""><div class="actions"><button class="view">查看</button><button class="fav">❤️ 收藏</button><button class="src">原帖</button></div>`;
+   c.querySelector(".view").onclick=()=>openViewer(p.large_file_url||p.file_url);
+   c.querySelector(".src").onclick=()=>location.href="https://danbooru.donmai.us/posts/"+p.id;
+   c.querySelector(".fav").onclick=e=>{let a=JSON.parse(localStorage.favs||"[]"),id=String(p.id),i=a.indexOf(id);i<0?a.push(id):a.splice(i,1);localStorage.favs=JSON.stringify(a);e.target.textContent=i<0?"❤️ 已收藏":"❤️ 收藏"};
+   grid.appendChild(c);
+  }
+  status.textContent=added?`加载了 ${added} 张`:"没有找到符合条件的图片";page++;
+  more.disabled=data.length<60;
+ }catch(e){if(e.name!=="AbortError"&&my===requestNo){status.textContent="加载失败，可点「加载更多」重试";more.disabled=false}}
+ finally{if(my===requestNo){loading=false;controller=null;if(more.disabled&&page>1)more.textContent="没有更多了"}}
+}
 more.onclick=load;
-let scale=1,dx=0,dy=0,sx=0,sy=0,last=0,moving=false;
-function open(u){vimg.src=u;scale=1;dx=dy=0;viewer.style.display="block";apply()}function apply(){vimg.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(${scale})`}
-close.onclick=()=>viewer.style.display="none";viewer.ondblclick=()=>{scale=scale>1?1:2;dx=dy=0;apply()};
-viewer.ontouchstart=e=>{if(e.touches.length==1){moving=true;sx=e.touches[0].clientX-dx;sy=e.touches[0].clientY-dy}if(e.touches.length==2)last=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)};
-viewer.ontouchmove=e=>{e.preventDefault();if(e.touches.length==2){let d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);scale=Math.max(.5,Math.min(5,scale*d/last));last=d;apply()}else if(moving&&scale>1){dx=e.touches[0].clientX-sx;dy=e.touches[0].clientY-sy;apply()}};load();
+const viewer=$("viewer"),vimg=$("vimg"),close=$("close");let scale=1,dx=0,dy=0,sx=0,sy=0,last=0,moving=false;
+function openViewer(u){vimg.src=u;scale=1;dx=dy=0;viewer.style.display="block";apply()}
+function apply(){vimg.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(${scale})`}
+close.onclick=()=>viewer.style.display="none";
+viewer.ondblclick=()=>{scale=scale>1?1:2;dx=dy=0;apply()};
+viewer.ontouchstart=e=>{if(e.touches.length===1){moving=true;sx=e.touches[0].clientX-dx;sy=e.touches[0].clientY-dy}if(e.touches.length===2)last=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)};
+viewer.ontouchmove=e=>{e.preventDefault();if(e.touches.length===2){let d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);scale=Math.max(.5,Math.min(5,scale*d/last));last=d;apply()}else if(moving&&scale>1){dx=e.touches[0].clientX-sx;dy=e.touches[0].clientY-sy;apply()}};
+viewer.ontouchend=()=>moving=false;
+load();
 </script></body></html>''',encoding="utf-8")
-print(f"[下载修正版 index.html](sandbox:{p})")
+print(f"[下载稳定版 index.html](sandbox:{p})")
