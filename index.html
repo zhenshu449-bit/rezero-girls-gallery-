@@ -4,827 +4,2040 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>🌿 Re:Zero Girls Gallery</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#111;color:#eee;font-family:Arial,"Microsoft YaHei",sans-serif}
-header{position:sticky;top:0;z-index:20;background:#181818;padding:12px;border-bottom:1px solid #333}
-h1{text-align:center;margin:0 0 10px;font-size:22px}
-.controls{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-button{border:0;border-radius:8px;padding:8px 11px;background:#292929;color:#fff;cursor:pointer}
-button.active{background:#6c4cff}
-.search{width:100%;margin-top:8px;padding:10px;border:1px solid #444;border-radius:8px;background:#222;color:#fff}
-#status{text-align:center;padding:10px;color:#aaa}
-#gallery{width:100%;max-width:1100px;margin:auto;padding:10px;display:grid;grid-template-columns:1fr;gap:12px}
-.card{background:#1c1c1c;border-radius:10px;overflow:hidden;border:1px solid #292929}
-.card img{display:block;width:100%;height:auto;cursor:pointer}
-.info{padding:8px}
-.tags{color:#aaa;font-size:12px;line-height:1.5;word-break:break-word}
-.actions{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.actions button{width:100%;font-size:13px}
-.load{display:block;margin:15px auto 30px;padding:11px 30px;background:#6c4cff}
-.viewer{position:fixed;inset:0;z-index:999;display:none;background:rgba(0,0,0,.96);touch-action:none;overflow:hidden}
-.viewer.show{display:block}
-.viewer img{position:absolute;left:50%;top:50%;max-width:96vw;max-height:94vh;transform:translate(-50%,-50%) scale(1);user-select:none;-webkit-user-drag:none;touch-action:none}
-.close{position:fixed;right:12px;top:12px;z-index:1001;font-size:20px;width:44px;height:44px;border-radius:50%;background:rgba(50,50,50,.8)}
-.viewerHint{position:fixed;bottom:15px;left:0;right:0;text-align:center;color:#aaa;font-size:12px;pointer-events:none}
-.empty{text-align:center;padding:40px 10px;color:#888}
-@media(min-width:700px){#gallery{grid-template-columns:repeat(3,1fr)}}
+
+body{
+  margin:0;
+  background:#111;
+  color:#eee;
+  font-family:Arial,"Microsoft YaHei",sans-serif;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:#181818;
+  padding:12px;
+  border-bottom:1px solid #333;
+}
+
+h1{
+  margin:0 0 10px;
+  text-align:center;
+  font-size:22px;
+}
+
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  justify-content:center;
+  margin-bottom:6px;
+}
+
+button{
+  border:0;
+  border-radius:8px;
+  padding:8px 11px;
+  background:#292929;
+  color:#fff;
+  cursor:pointer;
+}
+
+button.active{
+  background:#6c4cff;
+}
+
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.search{
+  width:100%;
+  margin-top:8px;
+  padding:10px;
+  border:1px solid #444;
+  border-radius:8px;
+  background:#222;
+  color:#fff;
+  outline:none;
+}
+
+#status{
+  text-align:center;
+  padding:10px;
+  color:#aaa;
+}
+
+#gallery{
+  width:100%;
+  max-width:1100px;
+  margin:auto;
+  padding:10px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+
+.card{
+  background:#1c1c1c;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid #292929;
+}
+
+.card img{
+  display:block;
+  width:100%;
+  height:auto;
+  cursor:pointer;
+}
+
+.info{
+  padding:8px;
+}
+
+.tags{
+  color:#aaa;
+  font-size:12px;
+  line-height:1.5;
+  word-break:break-word;
+}
+
+.actions{
+  margin-top:8px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+
+.actions button{
+  width:100%;
+  font-size:13px;
+}
+
+.load{
+  display:block;
+  margin:15px auto 30px;
+  padding:11px 30px;
+  background:#6c4cff;
+  min-width:150px;
+}
+
+.empty{
+  text-align:center;
+  padding:40px 10px;
+  color:#888;
+}
+
+.viewer{
+  position:fixed;
+  inset:0;
+  z-index:999;
+  display:none;
+  background:rgba(0,0,0,.96);
+  touch-action:none;
+  overflow:hidden;
+}
+
+.viewer.show{
+  display:block;
+}
+
+.viewer img{
+  position:absolute;
+  left:50%;
+  top:50%;
+  max-width:96vw;
+  max-height:94vh;
+  transform:translate(-50%,-50%) scale(1);
+  transform-origin:center;
+  user-select:none;
+  -webkit-user-drag:none;
+  touch-action:none;
+}
+
+.close{
+  position:fixed;
+  right:12px;
+  top:12px;
+  z-index:1001;
+  font-size:20px;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:rgba(50,50,50,.8);
+}
+
+.viewerHint{
+  position:fixed;
+  bottom:15px;
+  left:0;
+  right:0;
+  text-align:center;
+  color:#aaa;
+  font-size:12px;
+  pointer-events:none;
+}
+
+@media(min-width:700px){
+  #gallery{
+    grid-template-columns:repeat(3,1fr);
+  }
+}
 </style>
 </head>
 
 <body>
 
 <header>
+
 <h1>🌿 Re:Zero Girls Gallery</h1>
 
 <div class="controls">
-<button class="rating active" data-rating="all">全部</button>
-<button class="rating" data-rating="s">SFW</button>
-<button class="rating" data-rating="q">NSFW</button>
-<button id="favBtn">⭐ 收藏页</button>
-<button id="blockedBtn">🚫 已拉黑</button>
-<button id="clearBlocked">清空拉黑</button>
+
+<button class="rating active" data-rating="all">
+全部
+</button>
+
+<button class="rating" data-rating="s">
+SFW
+</button>
+
+<button class="rating" data-rating="q">
+NSFW
+</button>
+
+<button id="favBtn">
+⭐ 收藏页
+</button>
+
+<button id="blockedBtn">
+🚫 已拉黑
+</button>
+
+<button id="clearBlocked">
+清空拉黑
+</button>
+
 </div>
 
-<div class="controls" id="girls">
-<button class="girl active" data-tag="">全部</button>
-<button class="girl" data-tag="emilia">艾米莉亚</button>
-<button class="girl" data-tag="rem">蕾姆</button>
-<button class="girl" data-tag="ram">拉姆</button>
-<button class="girl" data-tag="echidna">艾姬多娜</button>
-<button class="girl" data-tag="beatrice">贝蒂</button>
-<button class="girl" data-tag="felt">菲鲁特</button>
-<button class="girl" data-tag="crusch_karsten">库珥修</button>
-<button class="girl" data-tag="anastasia_hoshin">阿纳斯塔西娅</button>
-<button class="girl" data-tag="priscilla_barielle">普莉希拉</button>
-<button class="girl" data-tag="frederica_baumann">弗雷德莉卡</button>
-<button class="girl" data-tag="natsumi_schwartz">夏美</button>
-<button class="girl" data-tag="elsa_granhiert">艾尔莎</button>
+
+<div class="controls">
+
+<button class="girl active" data-tag="">
+全部
+</button>
+
+<button class="girl" data-tag="emilia">
+艾米莉亚
+</button>
+
+<button class="girl" data-tag="rem">
+蕾姆
+</button>
+
+<button class="girl" data-tag="ram">
+拉姆
+</button>
+
+<button class="girl" data-tag="echidna">
+艾姬多娜
+</button>
+
+<button class="girl" data-tag="beatrice">
+贝蒂
+</button>
+
+<button class="girl" data-tag="felt">
+菲鲁特
+</button>
+
+<button class="girl" data-tag="crusch_karsten">
+库珥修
+</button>
+
+<button class="girl" data-tag="anastasia_hoshin">
+阿纳斯塔西娅
+</button>
+
+<button class="girl" data-tag="priscilla_barielle">
+普莉希拉
+</button>
+
+<button class="girl" data-tag="frederica_baumann">
+弗雷德莉卡
+</button>
+
+<button class="girl" data-tag="natsumi_schwartz">
+夏美
+</button>
+
+<button class="girl" data-tag="elsa_granhiert">
+艾尔莎
+</button>
+
 </div>
 
-<div class="controls" id="categories">
-<button class="category active" data-tag="">全部</button>
-<button class="category" data-tag="solo">单人</button>
-<button class="category" data-tag="multiple_girls">多人</button>
-<button class="category" data-tag="swimsuit">泳装</button>
-<button class="category" data-tag="maid">女仆</button>
-<button class="category" data-tag="kimono">和服</button>
-<button class="category" data-tag="school_uniform">校服</button>
-<button class="category" data-tag="cosplay">Cosplay</button>
+
+<div class="controls">
+
+<button class="category active" data-tag="">
+全部
+</button>
+
+<button class="category" data-tag="solo">
+单人
+</button>
+
+<button class="category" data-tag="multiple_girls">
+多人
+</button>
+
+<button class="category" data-tag="swimsuit">
+泳装
+</button>
+
+<button class="category" data-tag="maid">
+女仆
+</button>
+
+<button class="category" data-tag="kimono">
+和服
+</button>
+
+<button class="category" data-tag="school_uniform">
+校服
+</button>
+
+<button class="category" data-tag="cosplay">
+Cosplay
+</button>
+
 </div>
 
-<input id="tagSearch" class="search" placeholder="输入标签，例如 swimsuit">
+
+<input
+id="tagSearch"
+class="search"
+placeholder="输入标签，例如 swimsuit"
+/>
+
 </header>
 
-<div id="status">准备加载……</div>
-<div id="gallery"></div>
-<button id="loadMore" class="load">加载更多</button>
 
-<div id="viewer" class="viewer">
-<button id="closeViewer" class="close">✕</button>
-<img id="viewerImg">
-<div class="viewerHint">双指缩放 · 单指拖动 · 双击放大</div>
+<div id="status">
+准备加载……
 </div>
 
+
+<div id="gallery"></div>
+
+
+<button id="loadMore" class="load">
+加载更多
+</button>
+
+
+<div id="viewer" class="viewer">
+
+<button id="closeViewer" class="close">
+✕
+</button>
+
+<img id="viewerImg">
+
+<div class="viewerHint">
+双指缩放 · 单指拖动 · 双击放大
+</div>
+
+</div>
+
+
 <script>
-const API="https://danbooru.donmai.us/posts.json";
-const BASE="re:zero";
-const PER_PAGE=60;
 
-let page=1;
-let loading=false;
-let controller=null;
+const API =
+"https://danbooru.donmai.us/posts.json";
 
-let currentRating="all";
-let currentGirl="";
-let currentCategory="";
-let currentSearch="";
-let showBlocked=false;
-let showFavorites=false;
+/*
+  Re:Zero 作品标签
+*/
+const BASE =
+"re:zero";
 
-let posts=[];
 
-const blockedKey="rezeroBlockedIds";
-const favKey="rezeroFavorites";
+/*
+  每次加载数量
+*/
+const PER_PAGE = 40;
 
-let blockedIds=JSON.parse(localStorage.getItem(blockedKey)||"[]").map(String);
-let favorites=JSON.parse(localStorage.getItem(favKey)||"[]").map(String);
 
-const gallery=document.getElementById("gallery");
-const status=document.getElementById("status");
-const loadMore=document.getElementById("loadMore");
+/*
+  防止一次请求加载过多
+*/
+const REQUEST_TIMEOUT = 12000;
+
+
+let page = 1;
+
+let loading = false;
+
+let controller = null;
+
+let currentRating = "all";
+
+let currentGirl = "";
+
+let currentCategory = "";
+
+let currentSearch = "";
+
+let showBlocked = false;
+
+let showFavorites = false;
+
+let noMoreData = false;
+
+let posts = [];
+
+
+const blockedKey =
+"rezeroBlockedIds";
+
+const favKey =
+"rezeroFavorites";
+
+
+let blockedIds =
+JSON.parse(
+localStorage.getItem(blockedKey) || "[]"
+).map(String);
+
+
+let favorites =
+JSON.parse(
+localStorage.getItem(favKey) || "[]"
+).map(String);
+
+
+const gallery =
+document.getElementById("gallery");
+
+const status =
+document.getElementById("status");
+
+const loadMore =
+document.getElementById("loadMore");
+
+
+/* =========================
+   本地存储
+========================= */
 
 function saveBlocked(){
-localStorage.setItem(blockedKey,JSON.stringify(blockedIds.map(String)));
+
+  localStorage.setItem(
+    blockedKey,
+    JSON.stringify(blockedIds)
+  );
+
 }
+
 
 function saveFavorites(){
-localStorage.setItem(favKey,JSON.stringify(favorites.map(String)));
+
+  localStorage.setItem(
+    favKey,
+    JSON.stringify(favorites)
+  );
+
 }
+
 
 function isBlocked(id){
-return blockedIds.includes(String(id));
+
+  return blockedIds.includes(
+    String(id)
+  );
+
 }
+
 
 function isFavorite(id){
-return favorites.includes(String(id));
+
+  return favorites.includes(
+    String(id)
+  );
+
 }
+
+
+/* =========================
+   收藏
+========================= */
 
 function toggleFavorite(id){
-id=String(id);
 
-if(isFavorite(id)){
-favorites=favorites.filter(x=>x!==id);
-}else{
-favorites.push(id);
+  id = String(id);
+
+  if(isFavorite(id)){
+
+    favorites =
+      favorites.filter(
+        x => x !== id
+      );
+
+  }else{
+
+    favorites.push(id);
+
+  }
+
+  saveFavorites();
+
+  render();
+
 }
 
-saveFavorites();
-render();
-}
+
+/* =========================
+   拉黑
+========================= */
 
 function blockPost(id){
-id=String(id);
 
-if(!isBlocked(id)){
-blockedIds.push(id);
-saveBlocked();
+  id = String(id);
+
+  if(!isBlocked(id)){
+
+    blockedIds.push(id);
+
+    saveBlocked();
+
+  }
+
+  render();
+
 }
 
-render();
-}
 
 function unblockPost(id){
-id=String(id);
-blockedIds=blockedIds.filter(x=>x!==id);
-saveBlocked();
-render();
+
+  id = String(id);
+
+  blockedIds =
+    blockedIds.filter(
+      x => x !== id
+    );
+
+  saveBlocked();
+
+  render();
+
 }
+
+
+/* =========================
+   Rating
+========================= */
 
 function getRating(post){
-return(post.rating==="s"||post.rating==="g")?"SFW":"NSFW";
+
+  if(
+    post.rating === "s" ||
+    post.rating === "g"
+  ){
+
+    return "SFW";
+
+  }
+
+  return "NSFW";
+
 }
 
-function hasTag(post,tag){
-if(!tag)return true;
 
-const tags=String(post.tag_string||"")
-.toLowerCase()
-.split(" ");
+/* =========================
+   标签
+========================= */
 
-return tags.includes(tag.toLowerCase());
+function getTags(post){
+
+  return String(
+    post.tag_string || ""
+  )
+  .toLowerCase()
+  .split(" ");
+
 }
+
+
+function hasTag(post, tag){
+
+  if(!tag){
+    return true;
+  }
+
+  return getTags(post)
+    .includes(
+      tag.toLowerCase()
+    );
+
+}
+
+
+/* =========================
+   分类
+========================= */
 
 function matchesCategory(post){
-if(!currentCategory)return true;
 
-const tags=String(post.tag_string||"")
-.toLowerCase()
-.split(" ");
+  if(!currentCategory){
+    return true;
+  }
 
-if(currentCategory==="solo")
-return tags.includes("solo");
+  const tags =
+    getTags(post);
 
-if(currentCategory==="multiple_girls")
-return tags.includes("multiple_girls")||
-tags.includes("multiple_person")||
-tags.includes("group");
 
-if(currentCategory==="swimsuit")
-return tags.includes("swimsuit")||
-tags.includes("bikini");
+  if(
+    currentCategory === "solo"
+  ){
 
-if(currentCategory==="maid")
-return tags.includes("maid");
+    return tags.includes("solo");
 
-if(currentCategory==="kimono")
-return tags.includes("kimono")||
-tags.includes("yukata");
+  }
 
-if(currentCategory==="school_uniform")
-return tags.includes("school_uniform")||
-tags.includes("serafuku")||
-tags.includes("seifuku");
 
-if(currentCategory==="cosplay")
-return tags.includes("cosplay");
+  if(
+    currentCategory === "multiple_girls"
+  ){
 
-return true;
+    return (
+      tags.includes("multiple_girls") ||
+      tags.includes("multiple_person") ||
+      tags.includes("group")
+    );
+
+  }
+
+
+  if(
+    currentCategory === "swimsuit"
+  ){
+
+    return (
+      tags.includes("swimsuit") ||
+      tags.includes("bikini")
+    );
+
+  }
+
+
+  if(
+    currentCategory === "maid"
+  ){
+
+    return tags.includes("maid");
+
+  }
+
+
+  if(
+    currentCategory === "kimono"
+  ){
+
+    return (
+      tags.includes("kimono") ||
+      tags.includes("yukata")
+    );
+
+  }
+
+
+  if(
+    currentCategory === "school_uniform"
+  ){
+
+    return (
+      tags.includes("school_uniform") ||
+      tags.includes("serafuku") ||
+      tags.includes("seifuku")
+    );
+
+  }
+
+
+  if(
+    currentCategory === "cosplay"
+  ){
+
+    return tags.includes("cosplay");
+
+  }
+
+
+  return true;
+
 }
+
+
+/* =========================
+   搜索
+========================= */
 
 function matchesSearch(post){
-if(!currentSearch)return true;
 
-return String(post.tag_string||"")
-.toLowerCase()
-.includes(currentSearch.toLowerCase());
+  if(!currentSearch){
+    return true;
+  }
+
+  return String(
+    post.tag_string || ""
+  )
+  .toLowerCase()
+  .includes(
+    currentSearch.toLowerCase()
+  );
+
 }
+
+
+/* =========================
+   判断图片
+========================= */
 
 function matchesPost(post){
 
-if(showFavorites){
-if(!isFavorite(post.id))return false;
+  if(showFavorites){
+
+    if(
+      !isFavorite(post.id)
+    ){
+      return false;
+    }
+
+  }
+
+
+  if(showBlocked){
+
+    if(
+      !isBlocked(post.id)
+    ){
+      return false;
+    }
+
+  }else{
+
+    if(
+      isBlocked(post.id)
+    ){
+      return false;
+    }
+
+  }
+
+
+  if(
+    !showFavorites &&
+    currentRating !== "all"
+  ){
+
+    if(
+      currentRating === "s" &&
+      post.rating !== "s" &&
+      post.rating !== "g"
+    ){
+
+      return false;
+
+    }
+
+
+    if(
+      currentRating === "q" &&
+      (
+        post.rating === "s" ||
+        post.rating === "g"
+      )
+    ){
+
+      return false;
+
+    }
+
+  }
+
+
+  if(
+    currentGirl &&
+    !hasTag(
+      post,
+      currentGirl
+    )
+  ){
+
+    return false;
+
+  }
+
+
+  if(
+    !matchesCategory(post)
+  ){
+
+    return false;
+
+  }
+
+
+  if(
+    !matchesSearch(post)
+  ){
+
+    return false;
+
+  }
+
+
+  return true;
+
 }
 
-if(showBlocked){
-if(!isBlocked(post.id))return false;
-}else{
-if(isBlocked(post.id))return false;
-}
 
-if(!showFavorites&&currentRating!=="all"){
-
-if(currentRating==="s"&&
-post.rating!=="s"&&
-post.rating!=="g"){
-return false;
-}
-
-if(currentRating==="q"&&
-(post.rating==="s"||post.rating==="g")){
-return false;
-}
-}
-
-if(currentGirl&&!hasTag(post,currentGirl))
-return false;
-
-if(!matchesCategory(post))
-return false;
-
-if(!matchesSearch(post))
-return false;
-
-return true;
-}
+/* =========================
+   图片地址
+========================= */
 
 function imageUrl(post){
-return post.large_file_url||
-post.file_url||
-post.preview_file_url;
+
+  return (
+    post.large_file_url ||
+    post.file_url ||
+    post.preview_file_url
+  );
+
 }
+
+
+/* =========================
+   渲染
+========================= */
 
 function render(){
 
-gallery.innerHTML="";
+  gallery.innerHTML = "";
 
-const visible=posts.filter(matchesPost);
 
-if(showFavorites){
-status.textContent="⭐ 收藏 "+visible.length+" 张";
+  const visible =
+    posts.filter(matchesPost);
+
+
+  if(showFavorites){
+
+    status.textContent =
+      "⭐ 收藏 "+visible.length+" 张";
+
+  }else if(showBlocked){
+
+    status.textContent =
+      "🚫 已拉黑 "+visible.length+" 张";
+
+  }
+
+
+  if(!visible.length){
+
+    let text =
+      "这里暂时没有符合条件的图片 🥲";
+
+
+    if(showFavorites){
+
+      text =
+        "还没有收藏图片 ⭐";
+
+    }
+
+
+    if(showBlocked){
+
+      text =
+        "没有拉黑图片 🚫";
+
+    }
+
+
+    gallery.innerHTML =
+      `<div class="empty">${text}</div>`;
+
+    return;
+
+  }
+
+
+  visible.forEach(post => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+
+    const img =
+      document.createElement("img");
+
+    img.loading = "lazy";
+
+    img.src =
+      imageUrl(post);
+
+    img.alt =
+      "Re:Zero";
+
+    img.onclick = () =>
+      openViewer(
+        imageUrl(post)
+      );
+
+
+    img.onerror = () => {
+
+      img.style.display = "none";
+
+    };
+
+
+    const info =
+      document.createElement("div");
+
+    info.className = "info";
+
+
+    const tagText =
+      String(
+        post.tag_string || ""
+      )
+      .split(" ")
+      .slice(0,20)
+      .join(" ");
+
+
+    info.innerHTML = `
+
+      <div class="tags">
+        ${getRating(post)} · ${tagText}
+      </div>
+
+      <div class="actions">
+
+        <button class="viewBtn">
+          查看
+        </button>
+
+        <button class="favBtn">
+          ${
+            isFavorite(post.id)
+            ? "⭐ 已收藏"
+            : "☆ 收藏"
+          }
+        </button>
+
+        ${
+          isBlocked(post.id)
+
+          ? `
+            <button class="unblockBtn">
+              解除拉黑
+            </button>
+          `
+
+          : `
+            <button class="blockBtn">
+              🚫 拉黑
+            </button>
+          `
+        }
+
+        <button class="sourceBtn">
+          原帖
+        </button>
+
+      </div>
+    `;
+
+
+    info.querySelector(
+      ".viewBtn"
+    ).onclick = () =>
+      openViewer(
+        imageUrl(post)
+      );
+
+
+    info.querySelector(
+      ".favBtn"
+    ).onclick = () =>
+      toggleFavorite(
+        post.id
+      );
+
+
+    const blockButton =
+      info.querySelector(
+        ".blockBtn"
+      ) ||
+      info.querySelector(
+        ".unblockBtn"
+      );
+
+
+    if(blockButton){
+
+      blockButton.onclick = () => {
+
+        if(
+          isBlocked(post.id)
+        ){
+
+          unblockPost(
+            post.id
+          );
+
+        }else{
+
+          blockPost(
+            post.id
+          );
+
+        }
+
+      };
+
+    }
+
+
+    info.querySelector(
+      ".sourceBtn"
+    ).onclick = () => {
+
+      window.open(
+        "https://danbooru.donmai.us/posts/" +
+        post.id,
+        "_blank"
+      );
+
+    };
+
+
+    card.appendChild(img);
+
+    card.appendChild(info);
+
+    gallery.appendChild(card);
+
+  });
+
 }
 
-if(showBlocked){
-status.textContent="🚫 已拉黑 "+visible.length+" 张";
-}
 
-if(!visible.length){
-
-gallery.innerHTML=
-'<div class="empty">'+
-(showFavorites?
-"还没有收藏图片 ⭐":
-showBlocked?
-"没有拉黑图片 🚫":
-"这里暂时没有符合条件的图片 🥲")+
-'</div>';
-
-return;
-}
-
-visible.forEach(post=>{
-
-const card=document.createElement("div");
-card.className="card";
-
-const img=document.createElement("img");
-img.loading="lazy";
-img.src=imageUrl(post);
-img.alt="Re:Zero";
-img.onclick=()=>openViewer(imageUrl(post));
-
-const info=document.createElement("div");
-info.className="info";
-
-const tagText=String(post.tag_string||"")
-.split(" ")
-.slice(0,20)
-.join(" ");
-
-info.innerHTML=`
-<div class="tags">
-${getRating(post)} · ${tagText}
-</div>
-
-<div class="actions">
-
-<button class="viewBtn">查看</button>
-
-<button class="favBtn">
-${isFavorite(post.id)?"⭐ 已收藏":"☆ 收藏"}
-</button>
-
-${
-isBlocked(post.id)
-?'<button class="unblockBtn">解除拉黑</button>'
-:'<button class="blockBtn">🚫 拉黑</button>'
-}
-
-<button class="sourceBtn">原帖</button>
-
-</div>
-`;
-
-info.querySelector(".viewBtn")
-.onclick=()=>openViewer(imageUrl(post));
-
-info.querySelector(".favBtn")
-.onclick=()=>toggleFavorite(post.id);
-
-const blockButton=
-info.querySelector(".blockBtn")||
-info.querySelector(".unblockBtn");
-
-if(blockButton){
-blockButton.onclick=()=>{
-if(isBlocked(post.id)){
-unblockPost(post.id);
-}else{
-blockPost(post.id);
-}
-};
-}
-
-info.querySelector(".sourceBtn")
-.onclick=()=>{
-window.open(
-"https://danbooru.donmai.us/posts/"+post.id,
-"_blank"
-);
-};
-
-card.appendChild(img);
-card.appendChild(info);
-gallery.appendChild(card);
-
-});
-}
+/* =========================
+   查询条件
+========================= */
 
 function buildTags(){
 
-let tags=[BASE];
+  let tags = [BASE];
 
-if(currentGirl)
-tags.push(currentGirl);
 
-if(currentCategory){
+  if(currentGirl){
 
-if(currentCategory==="solo")
-tags.push("solo");
+    tags.push(
+      currentGirl
+    );
 
-if(currentCategory==="multiple_girls")
-tags.push("multiple_girls");
+  }
 
-if(currentCategory==="swimsuit")
-tags.push("swimsuit");
 
-if(currentCategory==="maid")
-tags.push("maid");
+  if(currentCategory){
 
-if(currentCategory==="kimono")
-tags.push("kimono");
+    tags.push(
+      currentCategory
+    );
 
-if(currentCategory==="school_uniform")
-tags.push("school_uniform");
+  }
 
-if(currentCategory==="cosplay")
-tags.push("cosplay");
+
+  if(
+    currentRating === "s"
+  ){
+
+    tags.push(
+      "rating:s"
+    );
+
+  }
+
+
+  if(
+    currentRating === "q"
+  ){
+
+    tags.push(
+      "rating:q"
+    );
+
+  }
+
+
+  return tags.join(" ");
+
 }
 
-if(currentRating==="s")
-tags.push("rating:s");
 
-if(currentRating==="q")
-tags.push("rating:q");
+/* =========================
+   稳定加载
+========================= */
 
-return tags.join(" ");
+async function fetchPosts(
+  reset = false
+){
+
+  /*
+    防止疯狂点击
+  */
+  if(loading){
+    return;
+  }
+
+
+  /*
+    收藏页 / 拉黑页不需要重新请求
+  */
+  if(
+    (showFavorites ||
+     showBlocked) &&
+    !reset
+  ){
+
+    render();
+
+    return;
+
+  }
+
+
+  loading = true;
+
+  loadMore.disabled = true;
+
+  loadMore.textContent =
+    "正在加载……";
+
+
+  /*
+    取消旧请求
+  */
+  if(controller){
+
+    controller.abort();
+
+  }
+
+
+  controller =
+    new AbortController();
+
+
+  const thisController =
+    controller;
+
+
+  const timeout =
+    setTimeout(() => {
+
+      thisController.abort();
+
+    },REQUEST_TIMEOUT);
+
+
+  if(reset){
+
+    page = 1;
+
+    noMoreData = false;
+
+    posts = [];
+
+    gallery.innerHTML = "";
+
+  }
+
+
+  status.textContent =
+    "正在加载图片……";
+
+
+  try{
+
+    const params =
+      new URLSearchParams();
+
+
+    params.set(
+      "tags",
+      buildTags()
+    );
+
+
+    params.set(
+      "limit",
+      String(PER_PAGE)
+    );
+
+
+    params.set(
+      "page",
+      String(page)
+    );
+
+
+    const response =
+      await fetch(
+        API +
+        "?" +
+        params.toString(),
+        {
+          signal:
+            thisController.signal
+        }
+      );
+
+
+    if(!response.ok){
+
+      throw new Error(
+        "HTTP "+response.status
+      );
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    clearTimeout(timeout);
+
+
+    /*
+      如果已经没有新数据
+    */
+    if(
+      !Array.isArray(data) ||
+      data.length === 0
+    ){
+
+      noMoreData = true;
+
+      status.textContent =
+        "已经没有更多图片了 📭";
+
+      loadMore.textContent =
+        "没有更多了";
+
+      loadMore.disabled = true;
+
+      loading = false;
+
+      return;
+
+    }
+
+
+    /*
+      去重
+    */
+    const existing =
+      new Set(
+        posts.map(
+          x => String(x.id)
+        )
+      );
+
+
+    let added = 0;
+
+
+    data.forEach(post => {
+
+      const id =
+        String(post.id);
+
+
+      if(
+        !existing.has(id)
+      ){
+
+        posts.push(post);
+
+        existing.add(id);
+
+        added++;
+
+      }
+
+    });
+
+
+    /*
+      进入下一页
+    */
+    page++;
+
+
+    render();
+
+
+    status.textContent =
+      "已加载 "+posts.length+" 张";
+
+
+    /*
+      如果这一页全是重复数据
+    */
+    if(
+      added === 0
+    ){
+
+      noMoreData = true;
+
+      loadMore.textContent =
+        "没有更多了";
+
+      loadMore.disabled = true;
+
+    }else{
+
+      loadMore.textContent =
+        "加载更多";
+
+      loadMore.disabled = false;
+
+    }
+
+
+  }catch(error){
+
+    clearTimeout(timeout);
+
+
+    if(
+      error.name === "AbortError"
+    ){
+
+      status.textContent =
+        "请求超时，请再点一次加载更多 😵";
+
+    }else{
+
+      status.textContent =
+        "加载失败，请再试一次 😵";
+
+    }
+
+
+    loadMore.textContent =
+      "重新加载";
+
+    loadMore.disabled =
+      false;
+
+
+  }finally{
+
+    loading = false;
+
+  }
+
 }
 
-async function fetchPosts(reset=false){
 
-if(loading)return;
+/* =========================
+   SFW / NSFW
+========================= */
 
-loading=true;
+document
+.querySelectorAll(".rating")
+.forEach(button => {
 
-if(controller)
-controller.abort();
+  button.onclick = () => {
 
-controller=new AbortController();
+    document
+    .querySelectorAll(".rating")
+    .forEach(x =>
+      x.classList.remove(
+        "active"
+      )
+    );
 
-const timeout=setTimeout(()=>{
-controller.abort();
-},12000);
 
-if(reset){
-page=1;
-posts=[];
-gallery.innerHTML="";
-}
+    button.classList.add(
+      "active"
+    );
 
-status.textContent="正在加载图片……";
 
-let success=false;
+    currentRating =
+      button.dataset.rating;
 
-for(let attempt=1;attempt<=2;attempt++){
 
-try{
+    showBlocked = false;
 
-const params=new URLSearchParams();
+    showFavorites = false;
 
-params.set("tags",buildTags());
-params.set("limit",PER_PAGE);
-params.set("page",page);
 
-const response=await fetch(
-API+"?"+params.toString(),
-{signal:controller.signal}
+    document
+    .getElementById(
+      "blockedBtn"
+    )
+    .classList.remove(
+      "active"
+    );
+
+
+    document
+    .getElementById(
+      "favBtn"
+    )
+    .classList.remove(
+      "active"
+    );
+
+
+    fetchPosts(true);
+
+  };
+
+});
+
+
+/* =========================
+   角色
+========================= */
+
+document
+.querySelectorAll(".girl")
+.forEach(button => {
+
+  button.onclick = () => {
+
+    document
+    .querySelectorAll(".girl")
+    .forEach(x =>
+      x.classList.remove(
+        "active"
+      )
+    );
+
+
+    button.classList.add(
+      "active"
+    );
+
+
+    currentGirl =
+      button.dataset.tag;
+
+
+    showBlocked = false;
+
+    showFavorites = false;
+
+
+    document
+    .getElementById(
+      "blockedBtn"
+    )
+    .classList.remove(
+      "active"
+    );
+
+
+    document
+    .getElementById(
+      "favBtn"
+    )
+    .classList.remove(
+      "active"
+    );
+
+
+    fetchPosts(true);
+
+  };
+
+});
+
+
+/* =========================
+   分类
+========================= */
+
+document
+.querySelectorAll(".category")
+.forEach(button => {
+
+  button.onclick = () => {
+
+    document
+    .querySelectorAll(".category")
+    .forEach(x =>
+      x.classList.remove(
+        "active"
+      )
+    );
+
+
+    button.classList.add(
+      "active"
+    );
+
+
+    currentCategory =
+      button.dataset.tag;
+
+
+    showBlocked = false;
+
+    showFavorites = false;
+
+
+    document
+    .getElementById(
+      "blockedBtn"
+    )
+    .classList.remove(
+      "active"
+    );
+
+
+    document
+    .getElementById(
+      "favBtn"
+    )
+    .classList.remove(
+      "active"
+    );
+
+
+    fetchPosts(true);
+
+  };
+
+});
+
+
+/* =========================
+   标签搜索
+========================= */
+
+document
+.getElementById(
+  "tagSearch"
+)
+.addEventListener(
+  "input",
+  event => {
+
+    currentSearch =
+      event.target.value.trim();
+
+    render();
+
+  }
 );
 
-if(!response.ok)
-throw new Error("HTTP "+response.status);
 
-const data=await response.json();
+/* =========================
+   收藏页
+========================= */
 
-clearTimeout(timeout);
+document
+.getElementById(
+  "favBtn"
+)
+.onclick = () => {
 
-const existing=new Set(
-posts.map(x=>String(x.id))
-);
+  showFavorites =
+    !showFavorites;
 
-data.forEach(x=>{
-if(!existing.has(String(x.id))){
-posts.push(x);
-}
-});
 
-page++;
-success=true;
+  showBlocked = false;
 
-render();
 
-if(!showFavorites&&!showBlocked){
-status.textContent="已加载 "+posts.length+" 张";
-}
+  document
+  .getElementById(
+    "favBtn"
+  )
+  .classList.toggle(
+    "active",
+    showFavorites
+  );
 
-break;
 
-}catch(err){
+  document
+  .getElementById(
+    "blockedBtn"
+  )
+  .classList.remove(
+    "active"
+  );
 
-if(attempt===2){
 
-clearTimeout(timeout);
+  render();
 
-if(!showFavorites&&!showBlocked)
-status.textContent="加载失败，请稍后再试 😵";
-
-}
-}
-}
-
-loading=false;
-}
-
-document.querySelectorAll(".rating").forEach(btn=>{
-
-btn.onclick=()=>{
-
-document.querySelectorAll(".rating")
-.forEach(x=>x.classList.remove("active"));
-
-btn.classList.add("active");
-
-currentRating=btn.dataset.rating;
-showBlocked=false;
-showFavorites=false;
-
-document.getElementById("blockedBtn")
-.classList.remove("active");
-
-document.getElementById("favBtn")
-.classList.remove("active");
-
-fetchPosts(true);
-
-};
-});
-
-document.querySelectorAll(".girl").forEach(btn=>{
-
-btn.onclick=()=>{
-
-document.querySelectorAll(".girl")
-.forEach(x=>x.classList.remove("active"));
-
-btn.classList.add("active");
-
-currentGirl=btn.dataset.tag;
-showBlocked=false;
-showFavorites=false;
-
-document.getElementById("blockedBtn")
-.classList.remove("active");
-
-document.getElementById("favBtn")
-.classList.remove("active");
-
-fetchPosts(true);
-
-};
-});
-
-document.querySelectorAll(".category").forEach(btn=>{
-
-btn.onclick=()=>{
-
-document.querySelectorAll(".category")
-.forEach(x=>x.classList.remove("active"));
-
-btn.classList.add("active");
-
-currentCategory=btn.dataset.tag;
-showBlocked=false;
-showFavorites=false;
-
-document.getElementById("blockedBtn")
-.classList.remove("active");
-
-document.getElementById("favBtn")
-.classList.remove("active");
-
-fetchPosts(true);
-
-};
-});
-
-document.getElementById("tagSearch")
-.addEventListener("input",e=>{
-currentSearch=e.target.value.trim();
-render();
-});
-
-
-/* 收藏页 */
-
-document.getElementById("favBtn")
-.onclick=()=>{
-
-showFavorites=!showFavorites;
-
-showBlocked=false;
-
-document.getElementById("favBtn")
-.classList.toggle("active",showFavorites);
-
-document.getElementById("blockedBtn")
-.classList.remove("active");
-
-render();
-
-};
-
-
-/* 拉黑页 */
-
-document.getElementById("blockedBtn")
-.onclick=()=>{
-
-showBlocked=!showBlocked;
-
-showFavorites=false;
-
-document.getElementById("blockedBtn")
-.classList.toggle("active",showBlocked);
-
-document.getElementById("favBtn")
-.classList.remove("active");
-
-render();
-
-};
-
-
-/* 清空拉黑 */
-
-document.getElementById("clearBlocked")
-.onclick=()=>{
-
-if(!blockedIds.length)return;
-
-if(confirm("确定清空全部拉黑记录吗？")){
-
-blockedIds=[];
-
-saveBlocked();
-
-render();
-
-}
-
-};
-
-
-loadMore.onclick=()=>{
-fetchPosts(false);
 };
 
 
 /* =========================
-图片查看器
+   拉黑页
 ========================= */
 
-const viewer=document.getElementById("viewer");
-const viewerImg=document.getElementById("viewerImg");
+document
+.getElementById(
+  "blockedBtn"
+)
+.onclick = () => {
 
-let scale=1;
-let posX=0;
-let posY=0;
+  showBlocked =
+    !showBlocked;
 
-let dragging=false;
-let startX=0;
-let startY=0;
 
-function updateViewer(){
+  showFavorites = false;
 
-viewerImg.style.transform=
-`translate(calc(-50% + ${posX}px),calc(-50% + ${posY}px)) scale(${scale})`;
 
-}
+  document
+  .getElementById(
+    "blockedBtn"
+  )
+  .classList.toggle(
+    "active",
+    showBlocked
+  );
 
-function openViewer(src){
 
-viewer.classList.add("show");
+  document
+  .getElementById(
+    "favBtn"
+  )
+  .classList.remove(
+    "active"
+  );
 
-viewerImg.src=src;
 
-scale=1;
-posX=0;
-posY=0;
-
-updateViewer();
-
-}
-
-function closeViewer(){
-
-viewer.classList.remove("show");
-viewerImg.src="";
-
-}
-
-document.getElementById("closeViewer")
-.onclick=closeViewer;
-
-viewer.onclick=e=>{
-
-if(e.target===viewer)
-closeViewer();
+  render();
 
 };
 
 
-/* 双击放大 */
+/* =========================
+   清空拉黑
+========================= */
 
-viewerImg.addEventListener("dblclick",()=>{
+document
+.getElementById(
+  "clearBlocked"
+)
+.onclick = () => {
 
-if(scale===1){
+  if(
+    blockedIds.length === 0
+  ){
 
-scale=2;
+    alert(
+      "目前没有拉黑图片"
+    );
 
-}else{
+    return;
 
-scale=1;
-posX=0;
-posY=0;
+  }
+
+
+  if(
+    confirm(
+      "确定清空全部拉黑记录吗？"
+    )
+  ){
+
+    blockedIds = [];
+
+    saveBlocked();
+
+    render();
+
+  }
+
+};
+
+
+/* =========================
+   加载更多
+========================= */
+
+loadMore.onclick = () => {
+
+  if(
+    loading ||
+    noMoreData
+  ){
+
+    return;
+
+  }
+
+
+  /*
+    收藏页和拉黑页
+    不继续请求 API
+  */
+  if(
+    showFavorites ||
+    showBlocked
+  ){
+
+    status.textContent =
+      "当前页面只显示已经保存的图片";
+
+    return;
+
+  }
+
+
+  fetchPosts(false);
+
+};
+
+
+/* =========================
+   图片查看器
+========================= */
+
+const viewer =
+document.getElementById(
+  "viewer"
+);
+
+const viewerImg =
+document.getElementById(
+  "viewerImg"
+);
+
+
+let scale = 1;
+
+let posX = 0;
+
+let posY = 0;
+
+let dragging = false;
+
+let startX = 0;
+
+let startY = 0;
+
+
+function updateViewer(){
+
+  viewerImg.style.transform =
+    `translate(
+      calc(-50% + ${posX}px),
+      calc(-50% + ${posY}px)
+    ) scale(${scale})`;
 
 }
 
-updateViewer();
 
-});
+function openViewer(src){
 
-
-/* 拖动 */
-
-viewerImg.addEventListener("pointerdown",e=>{
-
-dragging=true;
-
-startX=e.clientX-posX;
-startY=e.clientY-posY;
-
-viewerImg.setPointerCapture(e.pointerId);
-
-});
-
-viewerImg.addEventListener("pointermove",e=>{
-
-if(!dragging)return;
-
-posX=e.clientX-startX;
-posY=e.clientY-startY;
-
-updateViewer();
-
-});
-
-viewerImg.addEventListener("pointerup",()=>{
-dragging=false;
-});
-
-viewerImg.addEventListener("pointercancel",()=>{
-dragging=false;
-});
+  viewer.classList.add(
+    "show"
+  );
 
 
-/* 双指缩放 */
+  viewerImg.src = src;
 
-let pinchStartDistance=0;
-let pinchStartScale=1;
+
+  scale = 1;
+
+  posX = 0;
+
+  posY = 0;
+
+
+  updateViewer();
+
+}
+
+
+function closeViewer(){
+
+  viewer.classList.remove(
+    "show"
+  );
+
+
+  viewerImg.src = "";
+
+}
+
+
+document
+.getElementById(
+  "closeViewer"
+)
+.onclick = closeViewer;
+
+
+viewer.onclick = event => {
+
+  if(
+    event.target === viewer
+  ){
+
+    closeViewer();
+
+  }
+
+};
+
+
+/* =========================
+   双击缩放
+========================= */
 
 viewerImg.addEventListener(
-"touchstart",
-e=>{
+  "dblclick",
+  () => {
 
-if(e.touches.length===2){
+    if(scale === 1){
 
-e.preventDefault();
+      scale = 2;
 
-pinchStartDistance=
-getDistance(
-e.touches[0],
-e.touches[1]
+    }else{
+
+      scale = 1;
+
+      posX = 0;
+
+      posY = 0;
+
+    }
+
+
+    updateViewer();
+
+  }
 );
 
-pinchStartScale=scale;
 
-}
-
-},
-{passive:false}
-);
+/* =========================
+   单指拖动
+========================= */
 
 viewerImg.addEventListener(
-"touchmove",
-e=>{
+  "pointerdown",
+  event => {
 
-if(e.touches.length===2){
+    dragging = true;
 
-e.preventDefault();
+    startX =
+      event.clientX - posX;
 
-const distance=
-getDistance(
-e.touches[0],
-e.touches[1]
+    startY =
+      event.clientY - posY;
+
+
+    viewerImg.setPointerCapture(
+      event.pointerId
+    );
+
+  }
 );
 
-scale=
-pinchStartScale*
-(distance/pinchStartDistance);
 
-scale=Math.max(
-1,
-Math.min(scale,5)
+viewerImg.addEventListener(
+  "pointermove",
+  event => {
+
+    if(!dragging){
+      return;
+    }
+
+
+    posX =
+      event.clientX - startX;
+
+    posY =
+      event.clientY - startY;
+
+
+    updateViewer();
+
+  }
 );
 
-updateViewer();
 
-}
+viewerImg.addEventListener(
+  "pointerup",
+  () => {
 
-},
-{passive:false}
+    dragging = false;
+
+  }
 );
+
+
+viewerImg.addEventListener(
+  "pointercancel",
+  () => {
+
+    dragging = false;
+
+  }
+);
+
+
+/* =========================
+   双指缩放
+========================= */
+
+let pinchStartDistance = 0;
+
+let pinchStartScale = 1;
+
+
+viewerImg.addEventListener(
+  "touchstart",
+  event => {
+
+    if(
+      event.touches.length === 2
+    ){
+
+      event.preventDefault();
+
+
+      pinchStartDistance =
+        getDistance(
+          event.touches[0],
+          event.touches[1]
+        );
+
+
+      pinchStartScale =
+        scale;
+
+    }
+
+  },
+  {
+    passive:false
+  }
+);
+
+
+viewerImg.addEventListener(
+  "touchmove",
+  event => {
+
+    if(
+      event.touches.length === 2
+    ){
+
+      event.preventDefault();
+
+
+      const distance =
+        getDistance(
+          event.touches[0],
+          event.touches[1]
+        );
+
+
+      scale =
+        pinchStartScale *
+        (
+          distance /
+          pinchStartDistance
+        );
+
+
+      scale =
+        Math.max(
+          1,
+          Math.min(
+            scale,
+            5
+          )
+        );
+
+
+      updateViewer();
+
+    }
+
+  },
+  {
+    passive:false
+  }
+);
+
 
 function getDistance(a,b){
 
-const dx=a.clientX-b.clientX;
-const dy=a.clientY-b.clientY;
+  const dx =
+    a.clientX - b.clientX;
 
-return Math.sqrt(dx*dx+dy*dy);
+  const dy =
+    a.clientY - b.clientY;
+
+
+  return Math.sqrt(
+    dx * dx +
+    dy * dy
+  );
 
 }
 
 
-/* ESC */
+/* =========================
+   ESC关闭
+========================= */
 
-document.addEventListener("keydown",e=>{
+document.addEventListener(
+  "keydown",
+  event => {
 
-if(e.key==="Escape")
-closeViewer();
+    if(
+      event.key === "Escape"
+    ){
 
-});
+      closeViewer();
+
+    }
+
+  }
+);
 
 
-/* 开始 */
+/* =========================
+   首次加载
+========================= */
 
 fetchPosts(true);
 
