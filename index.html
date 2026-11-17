@@ -25,9 +25,9 @@ button:disabled{opacity:.5}
 #loadMore{display:block;margin:14px auto 30px;padding:12px 30px}
 #viewer{display:none;position:fixed;inset:0;background:#000;z-index:10;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
 #viewer.show{display:flex}
-#viewer img{max-width:100%;max-height:100%;object-fit:contain;user-select:none;transform-origin:center}
+#viewer img{max-width:100%;max-height:100%;object-fit:contain;user-select:none}
 #closeViewer{position:absolute;right:15px;top:15px;z-index:12;background:#333}
-.hint{position:absolute;bottom:15px;color:#ccc;font-size:12px;pointer-events:none}
+.hint{position:absolute;bottom:15px;color:#ccc;font-size:12px}
 @media(max-width:650px){
  #gallery{grid-template-columns:1fr;gap:12px;padding:10px}
  .card img{height:auto;max-height:85vh;min-height:180px}
@@ -137,7 +137,6 @@ let selectedRating="all";
 let selectedCategory="all";
 let selectedView="gallery";
 let extraTag="";
-let controller=null;
 
 function readStore(key){
  try{return JSON.parse(localStorage.getItem(key)||"[]")}
@@ -146,7 +145,6 @@ function readStore(key){
 function writeStore(key,value){
  localStorage.setItem(key,JSON.stringify(value));
 }
-
 function normalizeStore(arr){
  return arr.map(x=>typeof x==="object"?x:{id:x})
  .filter(x=>x&&x.id);
@@ -167,12 +165,12 @@ function hasAny(tags,options){
  return options.some(t=>tags.includes(t));
 }
 
-/* 大图优先：不再优先使用 preview_file_url 缩略图 */
+/* 原图优先：file_url 是原始文件地址 */
 function imageOf(post){
- return post.large_file_url||post.file_url||post.preview_file_url||"";
+ return post.file_url||post.large_file_url||post.preview_file_url||"";
 }
 function previewOf(post){
- return post.large_file_url||post.file_url||post.preview_file_url||"";
+ return post.file_url||post.large_file_url||post.preview_file_url||"";
 }
 
 function storedPost(post){
@@ -180,6 +178,9 @@ function storedPost(post){
   id:String(post.id),
   image:imageOf(post),
   preview:previewOf(post),
+  file_url:post.file_url||"",
+  large_file_url:post.large_file_url||"",
+  preview_file_url:post.preview_file_url||"",
   rating:post.rating||"s",
   tag_string:post.tag_string||post.tags||""
  };
@@ -246,7 +247,7 @@ function render(){
   gallery.innerHTML='<p style="grid-column:1/-1;text-align:center;color:#999;padding:35px 5px">这里暂时没有图片。可以切换筛选条件或加载更多。</p>';
  }else{
   list.forEach(post=>{
-   const image=post.preview||post.image||"";
+   const image=post.file_url||post.image||post.preview||post.large_file_url||post.preview_file_url||"";
    if(!image)return;
 
    const card=document.createElement("article");
@@ -256,7 +257,11 @@ function render(){
    img.src=image;
    img.loading="lazy";
    img.alt="Re:Zero fan art";
-   img.addEventListener("click",()=>openViewer(post.image||image));
+   img.addEventListener("click",()=>openViewer(image));
+   img.onerror=()=>{
+    const fallback=post.large_file_url||post.preview_file_url||"";
+    if(fallback&&img.src!==fallback)img.src=fallback;
+   };
    card.appendChild(img);
 
    const actions=document.createElement("div");
@@ -335,17 +340,9 @@ async function loadMore(){
     page:String(page)
    });
 
-   controller=new AbortController();
-   const timeout=setTimeout(()=>controller.abort(),20000);
-   let response;
-
-   try{
-    response=await fetch(API+"?"+params.toString(),{
-     signal:controller.signal
-    });
-   }finally{
-    clearTimeout(timeout);
-   }
+   const response=await fetch(API+"?"+params.toString(),{
+    signal:AbortSignal.timeout(20000)
+   });
 
    if(!response.ok)throw new Error("请求失败："+response.status);
 
@@ -364,11 +361,10 @@ async function loadMore(){
     if(posts.some(p=>String(p.id)===String(post.id)))continue;
 
     posts.push({
+     ...post,
      id:String(post.id),
      image:imageOf(post),
-     preview:previewOf(post),
-     rating:post.rating||"s",
-     tag_string:post.tag_string||""
+     preview:previewOf(post)
     });
     added++;
    }
@@ -381,11 +377,9 @@ async function loadMore(){
 
   $("status").textContent="本次新增 "+added+" 张图片";
  }catch(error){
-  $("status").textContent=
-   error.name==="AbortError"?"请求超时，请稍后重试。":"加载失败，请稍后重试。";
+  $("status").textContent="加载失败或超时，请稍后重试。";
  }finally{
   loading=false;
-  controller=null;
   render();
  }
 }
