@@ -25,7 +25,7 @@ button:disabled{opacity:.5}
 #loadMore{display:block;margin:14px auto 30px;padding:12px 30px}
 #viewer{display:none;position:fixed;inset:0;background:#000;z-index:10;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
 #viewer.show{display:flex}
-#viewer img{max-width:100%;max-height:100%;object-fit:contain;user-select:none}
+#viewer img{max-width:100%;max-height:100%;object-fit:contain;user-select:none;touch-action:none}
 #closeViewer{position:absolute;right:15px;top:15px;z-index:12;background:#333}
 .hint{position:absolute;bottom:15px;color:#ccc;font-size:12px}
 @media(max-width:650px){
@@ -165,22 +165,20 @@ function hasAny(tags,options){
  return options.some(t=>tags.includes(t));
 }
 
-/* 原图优先：file_url 是原始文件地址 */
+/* 只使用原图或高清大图，不使用低清预览图 */
 function imageOf(post){
- return post.file_url||post.large_file_url||post.preview_file_url||"";
+ return post.file_url||post.large_file_url||"";
 }
 function previewOf(post){
- return post.file_url||post.large_file_url||post.preview_file_url||"";
+ return post.file_url||post.large_file_url||"";
 }
 
 function storedPost(post){
  return {
   id:String(post.id),
   image:imageOf(post),
-  preview:previewOf(post),
   file_url:post.file_url||"",
   large_file_url:post.large_file_url||"",
-  preview_file_url:post.preview_file_url||"",
   rating:post.rating||"s",
   tag_string:post.tag_string||post.tags||""
  };
@@ -247,7 +245,7 @@ function render(){
   gallery.innerHTML='<p style="grid-column:1/-1;text-align:center;color:#999;padding:35px 5px">这里暂时没有图片。可以切换筛选条件或加载更多。</p>';
  }else{
   list.forEach(post=>{
-   const image=post.file_url||post.image||post.preview||post.large_file_url||post.preview_file_url||"";
+   const image=post.file_url||post.large_file_url||post.image||"";
    if(!image)return;
 
    const card=document.createElement("article");
@@ -256,12 +254,19 @@ function render(){
    const img=document.createElement("img");
    img.src=image;
    img.loading="lazy";
+   img.decoding="async";
    img.alt="Re:Zero fan art";
    img.addEventListener("click",()=>openViewer(image));
+
    img.onerror=()=>{
-    const fallback=post.large_file_url||post.preview_file_url||"";
-    if(fallback&&img.src!==fallback)img.src=fallback;
+    const fallback=post.large_file_url||"";
+    if(fallback&&img.src!==fallback){
+     img.src=fallback;
+    }else{
+     img.alt="图片加载失败";
+    }
    };
+
    card.appendChild(img);
 
    const actions=document.createElement("div");
@@ -340,9 +345,7 @@ async function loadMore(){
     page:String(page)
    });
 
-   const response=await fetch(API+"?"+params.toString(),{
-    signal:AbortSignal.timeout(20000)
-   });
+   const response=await fetch(API+"?"+params.toString());
 
    if(!response.ok)throw new Error("请求失败："+response.status);
 
@@ -357,14 +360,16 @@ async function loadMore(){
    page++;
 
    for(const post of data){
-    if(!post.id||!imageOf(post))continue;
+    const image=imageOf(post);
+    if(!post.id||!image)continue;
     if(posts.some(p=>String(p.id)===String(post.id)))continue;
 
     posts.push({
      ...post,
      id:String(post.id),
-     image:imageOf(post),
-     preview:previewOf(post)
+     image:image,
+     file_url:post.file_url||"",
+     large_file_url:post.large_file_url||""
     });
     added++;
    }
